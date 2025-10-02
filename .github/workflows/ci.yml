@@ -16,6 +16,7 @@ jobs:
       - run: npm test
 
   build-and-push:
+    depends-on: test
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
@@ -40,6 +41,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/dino-app:latest
 
   deploy-coolify:
+    depends-on: build-and-push
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
