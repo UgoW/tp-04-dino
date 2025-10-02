@@ -1,32 +1,23 @@
-name : Run test every push
+name: CI Pipeline
 
-
-# On every push, run tests.
-on: [push]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14
-      - run: npm install
-      - run: npm test
-
-
-name : Build and Push Docker Image
 on:
   push:
-    branches:
-      - main
-      - develop
 
 jobs:
-  build-and-push:
+  test:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm test
 
+  build-and-push:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,13 +39,8 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}/dino-app:latest
 
-name : Deploy to Coolify
-on:
-  push:
-    branches:
-      - develop
-jobs:
-  deploy:
+  deploy-coolify:
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Coolify deployment
@@ -62,4 +48,3 @@ jobs:
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
             ${{ secrets.COOLIFY_DEPLOY_URL }}
-            
